@@ -11,7 +11,6 @@ module JobPlatform::platform {
   use sui::object_table::{Self, ObjectTable};
   use sui::event;
 
-
   const ERROR_NOT_THE_OWNER: u64 = 0;
   const ERROR_INSUFFICENT_FUNDS: u64 = 1;
   const ERROR_MIN_CARD_COST: u64 = 1;
@@ -69,12 +68,12 @@ module JobPlatform::platform {
   }
 
   public entry fun create_card(
-    name: vector<u8>,
-    title: vector<u8>,
+    name: String,
+    title: String,
     img_url: vector<u8>,
     years_of_experience: u8,
-    technologies: vector<u8>,
-    contact: vector<u8>,
+    technologies: String,
+    contact: String,
     payment: Coin<SUI>,
     devhub: &mut DevHub,
     ctx: &mut TxContext,
@@ -90,63 +89,63 @@ module JobPlatform::platform {
     event::emit(
       CardCreated{
         id: object::uid_to_inner(&id),
-        name: string::utf8(name),
+        name: name,
         owner: tx_context::sender(ctx),
-        title: string::utf8(title),
-        contact: string::utf8(contact),
+        title: title,
+        contact: contact,
       }
     );
 
     let devcard = DevCard{
       id: id,
-      name: string::utf8(name),
+      name: name,
       owner: tx_context::sender(ctx),
-      title: string::utf8(title),
+      title: title,
       img_url: url::new_unsafe_from_bytes(img_url),
       years_of_experience,
       description: option::none(),
-      technologies: string::utf8(technologies),
+      technologies: technologies,
       portfolio: option::none(),
-      contact: string::utf8(contact),
+      contact: contact,
       open_to_work: true,
     };
     object_table::add(&mut devhub.cards, devhub.counter, devcard);
   }
 
-  public entry fun update_card_description(devhub: &mut DevHub, new_description: vector<u8>, id: u64, ctx: &mut TxContext){
+  public entry fun update_card_description(devhub: &mut DevHub, new_description: String, id: u64, ctx: &mut TxContext){
     let user_card = object_table::borrow_mut(&mut devhub.cards, id);
     assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
 
-    let old_value = option::swap_or_fill(&mut user_card.description, string::utf8(new_description));
+    let old_value = option::swap_or_fill(&mut user_card.description, new_description);
 
     event::emit(
       DescriptionUpdated{
         name: user_card.name,
         owner: user_card.owner,
-        new_description: string::utf8(new_description),
+        new_description: new_description,
       }
     );
 
     _ = old_value;
   }
 
-  // public entry fun update_portfolio(devhub: &mut DevHub, id: u64, new_portfolio: vector<u8>, ctx: &mut TxContext){
+  // public entry fun update_portfolio(devhub: &mut DevHub, id: u64, new_portfolio: String, ctx: &mut TxContext){
   //   let user_card = object_table::borrow_mut(&mut devhub.cards, id);
   //   assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
   //   user_card.portfolio = string::utf8(new_portfolio);
   // }
 
-  public entry fun update_portfolio(devhub: &mut DevHub, new_portfolio: vector<u8>, id: u64, ctx: &mut TxContext){
+  public entry fun update_portfolio(devhub: &mut DevHub, new_portfolio: String, id: u64, ctx: &mut TxContext){
     let user_card = object_table::borrow_mut(&mut devhub.cards, id);
     assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
 
-    let old_value = option::swap_or_fill(&mut user_card.portfolio, string::utf8(new_portfolio));
+    let old_value = option::swap_or_fill(&mut user_card.portfolio, new_portfolio);
 
     event::emit(
       PortfolioUpdated{
         name: user_card.name,
         owner: user_card.owner,
-        new_portfolio: string::utf8(new_portfolio),
+        new_portfolio: new_portfolio,
       }
     );
 
