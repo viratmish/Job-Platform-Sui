@@ -41,6 +41,11 @@ module JobPlatform::platform {
     cards: ObjectTable<address, DevCard>,
   }
 
+  struct DevHubCap has key {
+    id: UID,
+    to: ID
+  }
+
   struct CardCreated has copy, drop {
     id: ID,
     name: String,
@@ -62,14 +67,18 @@ module JobPlatform::platform {
   }
 
   fun init(ctx: &mut TxContext) {
+    let id_ = object::new(ctx);
+    let inner_ = object::uid_to_inner(&id_);
     transfer::share_object(
       DevHub{
-        id: object::new(ctx),
+        id: id_,
         owner: tx_context::sender(ctx),
         counter: 0,
         cards: object_table::new(ctx)
       }
     );
+
+    transfer::transfer(DevHubCap{id:object::new(ctx), to:inner_}, sender(ctx));
   }
 
   public fun create_card(
