@@ -29,6 +29,11 @@ module JobPlatform::platform {
     open_to_work: bool,
   }
 
+  struct DevCardCap has key, store {
+    id: UID,
+    card: ID
+  }
+
   struct DevHub has key {
     id: UID,
     owner: address,
@@ -67,7 +72,8 @@ module JobPlatform::platform {
     );
   }
 
-  public entry fun create_card(
+  public fun create_card(
+    devhub: &mut DevHub,
     name: String,
     title: String,
     img_url: vector<u8>,
@@ -75,9 +81,8 @@ module JobPlatform::platform {
     technologies: String,
     contact: String,
     payment: Coin<SUI>,
-    devhub: &mut DevHub,
     ctx: &mut TxContext,
-  ){
+  ) : DevCardCap {
     let value = coin::value(&payment);
     assert!(value == ERROR_MIN_CARD_COST, ERROR_INSUFFICENT_FUNDS);
     transfer::public_transfer(payment, devhub.owner);
@@ -85,6 +90,7 @@ module JobPlatform::platform {
     devhub.counter = devhub.counter + 1;
 
     let id = object::new(ctx);
+    let inner_ = object::uid_to_inner(&id);
 
     event::emit(
       CardCreated{
@@ -110,6 +116,11 @@ module JobPlatform::platform {
       open_to_work: true,
     };
     object_table::add(&mut devhub.cards, devhub.counter, devcard);
+
+    DevCardCap {
+      id: object::new(ctx),
+      card: inner_
+    }
   }
 
   public entry fun update_card_description(devhub: &mut DevHub, new_description: String, id: u64, ctx: &mut TxContext){
