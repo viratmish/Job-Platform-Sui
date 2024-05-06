@@ -123,9 +123,9 @@ module JobPlatform::platform {
     }
   }
 
-  public entry fun update_card_description(devhub: &mut DevHub, new_description: String, id: u64, ctx: &mut TxContext){
+  public entry fun update_card_description(cap: &DevCardCap, devhub: &mut DevHub, new_description: String, id: u64){
     let user_card = object_table::borrow_mut(&mut devhub.cards, id);
-    assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
+    assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
 
     let old_value = option::swap_or_fill(&mut user_card.description, new_description);
 
@@ -140,15 +140,9 @@ module JobPlatform::platform {
     _ = old_value;
   }
 
-  // public entry fun update_portfolio(devhub: &mut DevHub, id: u64, new_portfolio: String, ctx: &mut TxContext){
-  //   let user_card = object_table::borrow_mut(&mut devhub.cards, id);
-  //   assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
-  //   user_card.portfolio = string::utf8(new_portfolio);
-  // }
-
-  public entry fun update_portfolio(devhub: &mut DevHub, new_portfolio: String, id: u64, ctx: &mut TxContext){
+  public entry fun update_portfolio(cap: &DevCardCap, devhub: &mut DevHub, new_portfolio: String, id: u64, ctx: &mut TxContext){
     let user_card = object_table::borrow_mut(&mut devhub.cards, id);
-    assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
+    assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
 
     let old_value = option::swap_or_fill(&mut user_card.portfolio, new_portfolio);
 
@@ -163,9 +157,9 @@ module JobPlatform::platform {
     _ = old_value;
   }
 
-  public entry fun deactive_card(devhub: &mut DevHub, id: u64, ctx: &mut TxContext){
+  public fun deactive_card(cap: &DevCardCap, devhub: &mut DevHub, id: u64){
     let user_card = object_table::borrow_mut(&mut devhub.cards, id);
-    assert!(tx_context::sender(ctx) == user_card.owner, ERROR_NOT_THE_OWNER);
+    assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
     user_card.open_to_work = false;
   }
 
@@ -180,7 +174,7 @@ module JobPlatform::platform {
     Option<String>,
     String,
     bool,
-  ){
+  ) {
     let card = object_table::borrow(&devhub.cards, id);
     return(
       card.name,
