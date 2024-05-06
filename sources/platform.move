@@ -4,7 +4,7 @@ module JobPlatform::platform {
 
   use sui::transfer;
   use sui::object::{Self, UID, ID};
-  use sui::tx_context::{Self, TxContext};
+  use sui::tx_context::{Self, TxContext, sender};
   use sui::url::{Self, Url};
   use sui::coin::{Self, Coin};
   use sui::sui::SUI;
@@ -38,7 +38,7 @@ module JobPlatform::platform {
     id: UID,
     owner: address,
     counter: u64,
-    cards: ObjectTable<u64, DevCard>,
+    cards: ObjectTable<address, DevCard>,
   }
 
   struct CardCreated has copy, drop {
@@ -115,7 +115,7 @@ module JobPlatform::platform {
       contact: contact,
       open_to_work: true,
     };
-    object_table::add(&mut devhub.cards, devhub.counter, devcard);
+    object_table::add(&mut devhub.cards, sender(ctx), devcard);
 
     DevCardCap {
       id: object::new(ctx),
@@ -123,8 +123,8 @@ module JobPlatform::platform {
     }
   }
 
-  public entry fun update_card_description(cap: &DevCardCap, devhub: &mut DevHub, new_description: String, id: u64){
-    let user_card = object_table::borrow_mut(&mut devhub.cards, id);
+  public entry fun update_card_description(cap: &DevCardCap, devhub: &mut DevHub, new_description: String, ctx: &mut TxContext){
+    let user_card = object_table::borrow_mut(&mut devhub.cards, sender(ctx));
     assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
 
     let old_value = option::swap_or_fill(&mut user_card.description, new_description);
@@ -140,8 +140,8 @@ module JobPlatform::platform {
     _ = old_value;
   }
 
-  public entry fun update_portfolio(cap: &DevCardCap, devhub: &mut DevHub, new_portfolio: String, id: u64, ctx: &mut TxContext){
-    let user_card = object_table::borrow_mut(&mut devhub.cards, id);
+  public entry fun update_portfolio(cap: &DevCardCap, devhub: &mut DevHub, new_portfolio: String, ctx: &mut TxContext){
+    let user_card = object_table::borrow_mut(&mut devhub.cards, sender(ctx));
     assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
 
     let old_value = option::swap_or_fill(&mut user_card.portfolio, new_portfolio);
@@ -157,13 +157,17 @@ module JobPlatform::platform {
     _ = old_value;
   }
 
-  public fun deactive_card(cap: &DevCardCap, devhub: &mut DevHub, id: u64){
-    let user_card = object_table::borrow_mut(&mut devhub.cards, id);
+  public fun deactive_card(cap: &DevCardCap, devhub: &mut DevHub, ctx: &mut TxContext){
+    let user_card = object_table::borrow_mut(&mut devhub.cards, sender(ctx));
     assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
     user_card.open_to_work = false;
   }
 
-  public fun get_card_info(devhub: &DevHub, id: u64): (
+  public fun remove(cap: &DevCardCap, devhub: &mut DevHub, ctx: &mut TxContext) {
+
+  }
+
+  public fun get_card_info(devhub: &DevHub, ctx: &mut TxContext): (
     String,
     address,
     String,
@@ -175,7 +179,7 @@ module JobPlatform::platform {
     String,
     bool,
   ) {
-    let card = object_table::borrow(&devhub.cards, id);
+    let card = object_table::borrow(&devhub.cards, sender(ctx));
     return(
       card.name,
       card.owner,
