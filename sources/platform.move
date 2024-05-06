@@ -164,7 +164,23 @@ module JobPlatform::platform {
   }
 
   public fun remove(cap: &DevCardCap, devhub: &mut DevHub, ctx: &mut TxContext) {
+    let user_card = object_table::remove(&mut devhub.cards, sender(ctx));
+    let DevCard {
+      id,
+      name: _,
+      owner: _,
+      title: _,
+      img_url: _,
+      description: _,
+      years_of_experience: _,
+      technologies: _,
+      portfolio: _,
+      contact: _,
+      open_to_work: _
+    } = user_card;
 
+    assert!(object::uid_to_inner(&id) == cap.card, ERROR_NOT_THE_OWNER);
+    object::delete(id);
   }
 
   public fun get_card_info(devhub: &DevHub, ctx: &mut TxContext): (
