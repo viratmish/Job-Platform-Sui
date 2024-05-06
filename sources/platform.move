@@ -136,8 +136,6 @@ module JobPlatform::platform {
     let user_card = object_table::borrow_mut(&mut devhub.cards, sender(ctx));
     assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
 
-    let old_value = option::swap_or_fill(&mut user_card.description, new_description);
-
     event::emit(
       DescriptionUpdated{
         name: user_card.name,
@@ -145,8 +143,6 @@ module JobPlatform::platform {
         new_description: new_description,
       }
     );
-
-    _ = old_value;
   }
 
   public entry fun update_portfolio(cap: &DevCardCap, devhub: &mut DevHub, new_portfolio: String, ctx: &mut TxContext){
@@ -191,7 +187,7 @@ module JobPlatform::platform {
     assert!(object::uid_to_inner(&id) == cap.card, ERROR_NOT_THE_OWNER);
     object::delete(id);
   }
-
+  
   public fun get_card_info(devhub: &DevHub, ctx: &mut TxContext): (
     String,
     address,
