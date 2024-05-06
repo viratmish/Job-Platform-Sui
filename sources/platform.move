@@ -1,6 +1,6 @@
 module JobPlatform::platform {
   use std::option::{Self, Option};
-  use std::string::{Self, String};
+  use std::string::{String};
 
   use sui::transfer;
   use sui::object::{Self, UID, ID};
@@ -13,7 +13,7 @@ module JobPlatform::platform {
 
   const ERROR_NOT_THE_OWNER: u64 = 0;
   const ERROR_INSUFFICENT_FUNDS: u64 = 1;
-  const ERROR_MIN_CARD_COST: u64 = 1;
+  const ERROR_MIN_CARD_COST: u64 = 2;
 
   struct DevCard has key, store{
     id: UID,
@@ -209,5 +209,4 @@ module JobPlatform::platform {
       card.open_to_work,
     )
   }
-  
 }
