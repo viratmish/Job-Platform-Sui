@@ -214,4 +214,39 @@ module JobPlatform::platform {
       card.open_to_work,
     )
   }
+
+
+
+public fun get_card_count(devhub: &DevHub, ctx: &mut TxContext) : (u64) {
+    return devhub.counter;
+}
+
+public fun get_card_owner(cap: &DevCardCap, devhub: &DevHub, ctx: &mut TxContext) : (address) {
+    let user_card = object_table::borrow(&devhub.cards, sender(ctx));
+    assert!(object::id(user_card) == cap.card, ERROR_NOT_THE_OWNER);
+    return user_card.owner;
+}
+
+public fun get_card_by_name(devhub: &DevHub, name: String, ctx: &mut TxContext) : (Option<DevCard>) {
+    let cards = &devhub.cards;
+    for card in object_table::iter(cards) {
+        if card.name == name {
+            return Some(card);
+        }
+    }
+    None // Card not found
+}
+
+public fun get_cards_by_experience(devhub: &DevHub, experience: u8, ctx: &mut TxContext) : (Vec<DevCard>) {
+    let mut matching_cards = Vec::new();
+    let cards = &devhub.cards;
+    for card in object_table::iter(cards) {
+        if card.years_of_experience == experience {
+            matching_cards.push(card);
+        }
+    }
+    matching_cards
+}
+
+
 }
